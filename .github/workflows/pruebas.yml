@@ -1,0 +1,33 @@
+name: Pruebas Selenium + Behave + Allure
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Instalar Google Chrome
+        uses: browser-actions/setup-chrome@v1
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Ejecutar pruebas BDD en modo headless
+        env:
+          HEADLESS: "true"
+        run: |
+          behave -f allure_behave.formatter:AllureFormatter -o reports/allure-results features/
+      - name: Generar y publicar el reporte Allure
+        if: always()
+        uses: simple-elf/allure-report-action@v1.7
+        with:
+          allure_results: reports/allure-results
+          gh_pages: gh-pages
+          allure_report: reports/allure-report
